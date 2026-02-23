@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaristaBot Pro | Dennis Kathurima</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --coffee-dark: #2C1810;
+            --coffee-medium: #6B4423;
+            --coffee-light: #8B6914;
+            --accent-gold: #D4AF37;
+            --neon-green: #00FF88;
+            --mpesa-green: #00A650;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f5f0 0%, #e8e6e1 100%);
+            overflow-x: hidden;
+        }
+        
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .glass-dark {
+            background: rgba(44, 24, 16, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Status Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .status-pending { 
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            color: #92400E;
+            position: relative;
+        }
+        .status-pending::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: #F59E0B;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            z-index: -1;
+        }
+        
+        .status-preparing { 
+            background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+            color: #1E40AF;
+        }
+        
+        .status-ready { 
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            color: #065F46;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #10B981; }
+            to { box-shadow: 0 0 20px #10B981, 0 0 40px #10B981; }
+        }
+        
+        /* Payment Methods */
+        .payment-mpesa {
+            background: linear-gradient(135deg, #00A650 0%, #008F43 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .payment-mpesa::after {
+            content: 'M-PESA';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 0.7rem;
+            opacity: 0.3;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+        
+        .payment-metamask {
+            background: linear-gradient(135deg, #F6851B 0%, #E2761B 100%);
+        }
+        
+        .payment-phantom {
+            background: linear-gradient(135deg, #AB9FF2 0%, #5340B3 100%);
+        }
+        
+        /* Barista Cards */
+        .barista-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .barista-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .barista-card.active {
+            ring: 3px solid var(--accent-gold);
+            transform: scale(1.05);
+        }
+        
+        /* Specialty Coffee Layers */
+        .specialty-layer {
+            background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.1) 50%, transparent 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        /* Real-time indicator */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .live-indicator::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #EF4444;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--coffee-medium);
+            border-radius: 4px;
+        }
+        
+        /* Toast Notifications */
+        .toast-enter {
+            animation: slideInRight 0.3s ease-out;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Tip Animation */
+        .tip-coin {
+            animation: coinFlip 0.6s ease-out;
+        }
+        @keyframes coinFlip {
+            0% { transform: rotateY(0) scale(1); }
+            50% { transform: rotateY(720deg) scale(1.2); }
+            100% { transform: rotateY(1080deg) scale(1); }
+        }
+        
+        /* Input Focus States */
+        .input-luxury {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) border-box;
+        }
+        .input-luxury:focus {
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, var(--coffee-medium) 0%, var(--accent-gold) 100%) border-box;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(107, 68, 35, 0.1);
+        }
+        
+        /* Grid Pattern Background */
+        .bg-grid {
+            background-image: radial-gradient(circle at 1px 1px, rgba(107, 68, 35, 0.1) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-grid">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        
+        // ==========================================
+        // DATA & CONFIGURATION
+        // ==========================================
+        
+        const BARISTAS = [
+            { 
+                id: 'dennis', 
+                name: 'Barista Dennis', 
+                role: 'Head Barista & Founder',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dennis&backgroundColor=b6e3f4',
+                specialty: 'Kenyan AA Roast',
+                rating: 4.9,
+                tips: 0
+            },
+            { 
+                id: 'ian', 
+                name: 'Barista Ian', 
+                role: 'Senior Barista',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ian&backgroundColor=c0aede',
+                specialty: 'Cold Brew Master',
+                rating: 4.8,
+                tips: 0
+            },
+            { 
+                id: 'dan', 
+                name: 'Barista Dan', 
+                role: 'Barista',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dan&backgroundColor=ffd5dc',
+                specialty: 'Latte Art',
+                rating: 4.7,
+                tips: 0
+            },
+            { 
+                id: 'sophia', 
+                name: 'Barista Sophia', 
+                role: 'Barista',
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia&backgroundColor=ffdfbf',
+                specialty: 'Espresso Tonic',
+                rating: 4.9,
+                tips: 0
+            }
+        ];
+        
+        const SPECIALTY_ORIGINS = {
+            kenya: {
+                name: 'Kenyan Highlands',
+                region: 'Nyeri, Kiambu, Kirinyaga',
+                notes: 'Blackcurrant, Wine-like acidity, Chocolate',
+                altitude: '1,700-2,200m',
+                process: 'Washed',
+                priceModifier: 1.5
+            },
+            brazil: {
+                name: 'Brazilian Santos',
+                region: 'Minas Gerais, São Paulo',
+                notes: 'Nutty, Chocolate, Low acidity',
+                altitude: '800-1,200m',
+                process: 'Natural/Pulped Natural',
+                priceModifier: 1.2
+            },
+            ethiopia: {
+                name: 'Ethiopian Yirgacheffe',
+                region: 'Sidamo, Gedeo Zone',
+                notes: 'Floral, Citrus, Bergamot',
+                altitude: '1,750-2,200m',
+                process: 'Washed',
+                priceModifier: 1.6
+            },
+            colombia: {
+                name: 'Colombian Huila',
+                region: 'Huila, Nariño',
+                notes: 'Caramel, Red fruit, Balanced',
+                altitude: '1,500-2,000m',
+                process: 'Washed',
+                priceModifier: 1.3
+            }
+        };
+        
+        const COFFEE_TYPES = [
+            { id: 'espresso', name: 'Espresso', basePrice: 250, description: 'Intense & concentrated' },
+            { id: 'americano', name: 'Americano', basePrice: 300, description: 'Smooth & bold' },
+            { id: 'latte', name: 'Latte', basePrice: 400, description: 'Creamy & mellow' },
+            { id: 'cappuccino', name: 'Cappuccino', basePrice: 400, description: 'Rich & foamy' },
+            { id: 'mocha', name: 'Mocha', basePrice: 450, description: 'Chocolate indulgence' },
+            { id: 'coldbrew', name: 'Cold Brew', basePrice: 350, description: 'Smooth & refreshing' },
+            { id: 'flatwhite', name: 'Flat White', basePrice: 420, description: 'Velvety microfoam' },
+            { id: 'macchiato', name: 'Macchiato', basePrice: 320, description: 'Marked with foam' }
+        ];
+        
+        const SIZES = {
+            small: { multiplier: 1, label: 'Small (8oz)', kiswahili: 'Ndogo' },
+            medium: { multiplier: 1.3, label: 'Medium (12oz)', kiswahili: 'Kati' },
+            large: { multiplier: 1.6, label: 'Large (16oz)', kiswahili: 'Kubwa' }
+        };
+        
+        const EXTRAS = {
+            oat: { name: 'Oat Milk', price: 80, icon: '🌾' },
+            almond: { name: 'Almond Milk', price: 80, icon: '🥜' },
+            extraShot: { name: 'Extra Shot', price: 100, icon: '⚡' },
+            vanilla: { name: 'Vanilla Syrup', price: 50, icon: '🌸' },
+            caramel: { name: 'Caramel Drizzle', price: 60, icon: '🍯' },
+            hazelnut: { name: 'Hazelnut', price: 50, icon: '🌰' },
+            whipped: { name: 'Whipped Cream', price: 70, icon: '☁️' }
+        };
+        
+        // ==========================================
+        // MOCK BACKEND SERVICE (Replace with real API)
+        // ==========================================
+        
+        class BackendService {
+            constructor() {
+                this.subscribers = [];
+                this.orders = [];
+                this.socket = null;
+                this.isConnected = false;
+            }
+            
+            // Simulate WebSocket connection
+            connect() {
+                this.isConnected = true;
+                console.log('🔌 Connected to BaristaBot Backend');
+                // In production: this.socket = new WebSocket('wss://your-api.com/ws');
+                return true;
+            }
+            
+            subscribe(callback) {
+                this.subscribers.push(callback);
+                return () => {
+                    this.subscribers = this.subscribers.filter(cb => cb !== callback);
+                };
+            }
+            
+            notify(data) {
+                this.subscribers.forEach(cb => cb(data));
+            }
+            
+            // M-Pesa Integration
+            async initiateMpesaPayment(phone, amount, orderId) {
+                // Production: Call your backend API
+                // const response = await fetch('/api/mpesa/stk-push', {
+                //   method: 'POST',
+                //   body: JSON.stringify({ phone, amount, orderId })
+                // });
+                
+                // Mock successful initiation
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            success: true,
+                            checkoutRequestId: 'ws_' + Date.now(),
+                            message: 'STK Push sent to ' + phone
+                        });
+                    }, 1500);
+                });
+            }
+            
+            // Web3 Payment
+            async initiateWeb3Payment(amount, walletType, address) {
+                if (walletType === 'metamask') {
+                    // Ethereum/Polygon payment
+                    if (!window.ethereum) throw new Error('MetaMask not installed');
+                    
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    // Convert KES to ETH (mock rate)
+                    const ethAmount = (amount / 200000).toFixed(6);
+                    const wei = BigInt(Math.floor(parseFloat(ethAmount) * 1e18));
+                    
+                    const tx = {
+                        from: accounts[0],
+                        to: '0xYourCoffeeShopAddress', // Replace with your address
+                        value: '0x' + wei.toString(16),
+                        gas: '0x5208',
+                        chainId: '0x89' // Polygon Mainnet
+                    };
+                    
+                    const txHash = await window.ethereum.request({
+                        method: 'eth_sendTransaction',
+                        params: [tx]
+                    });
+                    
+                    return { success: true, txHash, network: 'Polygon' };
+                    
+                } else if (walletType === 'phantom') {
+                    // Solana payment
+                    if (!window.solana || !window.solana.isPhantom) {
+                        throw new Error('Phantom not installed');
+                    }
+                    
+                    await window.solana.connect();
+                    const connection = new solanaWeb3.Connection(
+                        'https://api.mainnet-beta.solana.com'
+                    );
+                    
+                    const transaction = new solanaWeb3.Transaction();
+                    // Add transfer instruction...
+                    
+                    const { signature } = await window.solana.signAndSendTransaction(transaction);
+                    return { success: true, signature, network: 'Solana' };
+                }
+            }
+        }
+        
+        const backend = new BackendService();
+        
+        // ==========================================
+        // MAIN APP COMPONENT
+        // ==========================================
+        
+        const BaristaBotPro = () => {
+            // Core State
+            const [view, setView] = useState('customer'); // 'customer' | 'barista'
+            const [role, setRole] = useState('customer'); // 'customer' | 'barista'
+            const [activeBarista, setActiveBarista] = useState('dennis');
+            const [orders, setOrders] = useState([
+                { 
+                    id: 1001, 
+                    coffee: 'Espresso', 
+                    origin: 'kenya',
+                    size: 'Small', 
+                    extras: ['Extra Shot'], 
+                    status: 'ready', 
+                    time: '2 min ago', 
+                    customer: 'Dennis (Table A3)', 
+                    total: 450, 
+                    feedback: [],
+                    assignedBarista: 'dennis',
+                    tips: 50
+                },
+                { 
+                    id: 1002, 
+                    coffee: 'Latte', 
+                    origin: 'brazil',
+                    size: 'Medium', 
+                    extras: ['Oat Milk'], 
+                    status: 'preparing', 
+                    time: '5 min ago', 
+                    customer: 'Sarah (Table B1)', 
+                    total: 580, 
+                    feedback: [],
+                    assignedBarista: 'ian',
+                    tips: 0
+                }
+            ]);
+            
+            // Form State
+            const [selectedCoffee, setSelectedCoffee] = useState('latte');
+            const [selectedOrigin, setSelectedOrigin] = useState('kenya');
+            const [selectedSize, setSelectedSize] = useState('medium');
+            const [selectedExtras, setSelectedExtras] = useState([]);
+            const [customerName, setCustomerName] = useState('');
+            const [tableNumber, setTableNumber] = useState('');
+            const [selectedBarista, setSelectedBarista] = useState('dennis');
+            
+            // UI State
+            const [showPayment, setShowPayment] = useState(false);
+            const [paymentMethod, setPaymentMethod] = useState(null);
+            const [paymentStep, setPaymentStep] = useState('select'); // 'select' | 'processing' | 'success'
+            const [walletConnected, setWalletConnected] = useState(false);
+            const [walletAddress, setWalletAddress] = useState('');
+            const [notifications, setNotifications] = useState([]);
+            const [feedbackText, setFeedbackText] = useState({});
+            const [showTipModal, setShowTipModal] = useState(null);
+            const [tipAmount, setTipAmount] = useState(100);
+            
+            // Refs for performance
+            const nameInputRef = useRef(null);
+            const tableInputRef = useRef(null);
+            
+            // Initialize backend connection
+            useEffect(() => {
+                backend.connect();
+                const unsubscribe = backend.subscribe((data) => {
+                    if (data.type === 'ORDER_UPDATE') {
+                        setOrders(prev => prev.map(o => 
+                            o.id === data.orderId ? { ...o, status: data.status } : o
+                        ));
+                    }
+                });
+                
+                return () => unsubscribe();
+            }, []);
+            
+            // Calculate total with all modifiers
+            const calculateTotal = useMemo(() => {
+                const coffee = COFFEE_TYPES.find(c => c.id === selectedCoffee);
+                const origin = SPECIALTY_ORIGINS[selectedOrigin];
+                const sizeMult = SIZES[selectedSize].multiplier;
+                const extrasTotal = selectedExtras.reduce((sum, extra) => sum + EXTRAS[extra].price, 0);
+                const baseTotal = (coffee.basePrice * sizeMult * origin.priceModifier) + extrasTotal;
+                return Math.round(baseTotal);
+            }, [selectedCoffee, selectedOrigin, selectedSize, selectedExtras]);
+            
+            // Notification system
+            const addNotification = useCallback((message, type = 'info', duration = 3000) => {
+                const id = Date.now();
+                setNotifications(prev => [...prev, { id, message, type }]);
+                setTimeout(() => {
+                    setNotifications(prev => prev.filter(n => n.id !== id));
+                }, duration);
+            }, []);
+            
+            // Toggle extras without re-render issues
+            const toggleExtra = useCallback((extra) => {
+                setSelectedExtras(prev => 
+                    prev.includes(extra) 
+                        ? prev.filter(e => e !== extra)
+                        : [...prev, extra]
+                );
+            }, []);
+            
+            // Connect Web3 Wallet
+            const connectWallet = async (type) => {
+                try {
+                    if (type === 'metamask') {
+                        if (!window.ethereum) {
+                            window.open('https://metamask.io', '_blank');
+                            return;
+                        }
+                        const accounts = await window.ethereum.request({ 
+                            method: 'eth_requestAccounts' 
+                        });
+                        setWalletAddress(accounts[0]);
+                        setWalletConnected(true);
+                        addNotification('MetaMask connected!', 'success');
+                    } else if (type === 'phantom') {
+                        if (!window.solana) {
+                            window.open('https://phantom.app', '_blank');
+                            return;
+                        }
+                        await window.solana.connect();
+                        setWalletAddress(window.solana.publicKey.toString());
+                        setWalletConnected(true);
+                        addNotification('Phantom connected!', 'success');
+                    }
+                } catch (err) {
+                    addNotification('Connection failed: ' + err.message, 'error');
+                }
+            };
+            
+            // Submit Order
+            const submitOrder = async () => {
+                if (!customerName.trim() || !tableNumber.trim()) {
+                    addNotification('Please enter your name and table number', 'error');
+                    return;
+                }
+                
+                setPaymentStep('processing');
+                
+                try {
+                    if (paymentMethod === 'mpesa') {
+                        // Initiate M-Pesa STK Push
+                        const phone = prompt('Enter M-Pesa number (2547XXXXXXXX):');
+                        if (!phone) return;
+                        
+                        const result = await backend.initiateMpesaPayment(phone, calculateTotal, Date.now());
+                        addNotification(result.message, 'success');
+                    } else if (paymentMethod === 'metamask' || paymentMethod === 'phantom') {
+                        await backend.initiateWeb3Payment(calculateTotal, paymentMethod, walletAddress);
+                    }
+                    
+                    // Create order
+                    const coffee = COFFEE_TYPES.find(c => c.id === selectedCoffee);
+                    const origin = SPECIALTY_ORIGINS[selectedOrigin];
+                    
+                    const newOrder = {
+                        id: 1000 + orders.length + 1,
+                        coffee: coffee.name,
+                        origin: selectedOrigin,
+                        size: SIZES[selectedSize].label,
+                        extras: selectedExtras.map(e => EXTRAS[e].name),
+                        status: 'pending',
+                        time: 'Just now',
+                        customer: `${customerName} (Table ${tableNumber})`,
+                        total: calculateTotal,
+                        feedback: [],
+                        assignedBarista: selectedBarista,
+                        tips: 0
+                    };
+                    
+                    setOrders(prev => [newOrder, ...prev]);
+                    setPaymentStep('success');
+                    
+                    setTimeout(() => {
+                        setShowPayment(false);
+                        setPaymentStep('select');
+                        setPaymentMethod(null);
+                        setSelectedExtras([]);
+                        addNotification(`Order #${newOrder.id} placed successfully!`, 'success');
+                    }, 1500);
+                    
+                    // Simulate status updates
+                    setTimeout(() => {
+                        setOrders(prev => prev.map(o => 
+                            o.id === newOrder.id ? {...o, status: 'preparing'} : o
+                        ));
+                        addNotification(`Order #${newOrder.id} is being prepared by ${BARISTAS.find(b => b.id === selectedBarista).name}`, 'info');
+                    }, 8000);
+                    
+                } catch (error) {
+                    addNotification('Payment failed: ' + error.message, 'error');
+                    setPaymentStep('select');
+                }
+            };
+            
+            // Update order status (Barista action)
+            const updateOrderStatus = (orderId, newStatus) => {
+                setOrders(prev => prev.map(o => 
+                    o.id === orderId ? {...o, status: newStatus} : o
+                ));
+                
+                if (newStatus === 'ready') {
+                    addNotification(`Order #${orderId} is ready for pickup!`, 'success');
+                    // In production: Send push notification to customer
+                }
+            };
+            
+            // Submit feedback
+            const submitFeedback = (orderId) => {
+                const text = feedbackText[orderId];
+                if (!text?.trim()) return;
+                
+                setOrders(prev => prev.map(o => 
+                    o.id === orderId ? {
+                        ...o, 
+                        feedback: [...o.feedback, {
+                            text,
+                            user: customerName || 'Guest',
+                            time: new Date().toLocaleTimeString(),
+                            rating: 5
+                        }]
+                    } : o
+                ));
+                
+                setFeedbackText(prev => ({ ...prev, [orderId]: '' }));
+                addNotification('Feedback submitted!', 'success');
+            };
+            
+            // Send tip to barista
+            const sendTip = async (orderId, baristaId) => {
+                try {
+                    if (paymentMethod === 'mpesa') {
+                        // M-Pesa B2C or C2B transfer to barista
+                        addNotification(`Tip of KES ${tipAmount} sent to ${BARISTAS.find(b => b.id === baristaId).name}!`, 'success');
+                    } else {
+                        // Web3 tip transfer
+                        addNotification(`Tip sent via blockchain!`, 'success');
+                    }
+                    
+                    setOrders(prev => prev.map(o => 
+                        o.id === orderId ? { ...o, tips: o.tips + tipAmount } : o
+                    ));
+                    
+                    setShowTipModal(null);
+                    setTipAmount(100);
+                } catch (err) {
+                    addNotification('Tip failed: ' + err.message, 'error');
+                }
+            };
+            
+            // ==========================================
+            // COMPONENTS
+            // ==========================================
+            
+            const NotificationContainer = () => (
+                <div className="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
+                    <AnimatePresence>
+                        {notifications.map(notif => (
+                            <motion.div
+                                key={notif.id}
+                                initial={{ x: 100, opacity: 0, scale: 0.8 }}
+                                animate={{ x: 0, opacity: 1, scale: 1 }}
+                                exit={{ x: 100, opacity: 0 }}
+                                className={`pointer-events-auto px-6 py-4 rounded-xl shadow-2xl text-white font-medium min-w-[300px] backdrop-blur-md ${
+                                    notif.type === 'success' ? 'bg-green-600/90 border border-green-400' :
+                                    notif.type === 'error' ? 'bg-red-600/90 border border-red-400' : 
+                                    'bg-[#6B4423]/90 border border-[#8B6914]'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {notif.type === 'success' && <span className="text-2xl">✓</span>}
+                                    {notif.type === 'error' && <span className="text-2xl">⚠</span>}
+                                    {notif.type === 'info' && <span className="text-2xl">☕</span>}
+                                    <span>{notif.message}</span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            );
+            
+            const RoleSwitch = () => (
+                <div className="fixed top-4 left-4 z-40">
+                    <div className="glass rounded-full p-1 flex gap-1 shadow-lg">
+                        <button
+                            onClick={() => setRole('customer')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                role === 'customer' 
+                                    ? 'bg-[#6B4423] text-white shadow-md' 
+                                    : 'text-[#6B4423] hover:bg-white/50'
+                            }`}
+                        >
+                            Customer
+                        </button>
+                        <button
+                            onClick={() => setRole('barista')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                role === 'barista' 
+                                    ? 'bg-[#6B4423] text-white shadow-md' 
+                                    : 'text-[#6B4423] hover:bg-white/50'
+                            }`}
+                        >
+                            Barista
+                        </button>
+                    </div>
+                </div>
+            );
+            
+            const Header = () => (
+                <motion.div 
+                    initial={{ y: -50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="relative overflow-hidden bg-gradient-to-br from-[#2C1810] via-[#4A2511] to-[#6B4423] text-white py-12 px-6"
+                >
+                    <div className="absolute inset-0 opacity-20">
+                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-yellow-500 rounded-full blur-[100px]"></div>
+                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-orange-500 rounded-full blur-[100px]"></div>
+                    </div>
+                    
+                    <div className="relative z-10 max-w-6xl mx-auto text-center">
+                        <motion.div 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                            className="text-7xl mb-4 inline-block"
+                        >
+                            ☕
+                        </motion.div>
+                        <h1 className="font-display text-5xl md:text-6xl font-bold mb-3 tracking-tight">
+                            BaristaBot <span className="text-[#D4AF37]">Pro</span>
+                        </h1>
+                        <p className="text-white/70 text-lg max-w-2xl mx-auto">
+                            Specialty Coffee • M-Pesa & Crypto • Crafted by Dennis Kathurima
+                        </p>
+                        <div className="mt-4 flex justify-center gap-4 text-sm text-white/50">
+                            <span className="live-indicator">Live Orders</span>
+                            <span>•</span>
+                            <span>Nairobi • Global</span>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+            
+            const CustomerView = () => (
+                <div className="min-h-screen pb-20">
+                    <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        {/* Left Column - Order Form */}
+                        <div className="lg:col-span-7 space-y-6">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="glass rounded-3xl shadow-2xl p-8 border border-white/50"
+                            >
+                                <h2 className="font-display text-3xl font-bold text-[#2C1810] mb-6 flex items-center gap-3">
+                                    <span className="w-12 h-12 rounded-full bg-[#6B4423] text-white flex items-center justify-center text-xl">1</span>
+                                    Craft Your Perfect Cup
+                                </h2>
+                                
+                                {/* Customer Details - Optimized for no re-render on typing */}
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-[#6B4423] mb-2">Your Name</label>
+                                        <input 
+                                            ref={nameInputRef}
+                                            type="text" 
+                                            defaultValue={customerName}
+                                            onBlur={(e) => setCustomerName(e.target.value)}
+                                            className="w-full p-4 rounded-xl input-luxury text-lg"
+                                            placeholder="e.g., Dennis"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-[#6B4423] mb-2">Table Number</label>
+                                        <input 
+                                            ref={tableInputRef}
+                                            type="text" 
+                                            defaultValue={tableNumber}
+                                            onBlur={(e) => setTableNumber(e.target.value)}
+                                            className="w-full p-4 rounded-xl input-luxury text-lg"
+                                            placeholder="e.g., A3"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                {/* Barista Selection */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-[#6B4423] mb-3">Choose Your Barista</label>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {BARISTAS.map(barista => (
+                                            <motion.div
+                                                key={barista.id}
+                                                onClick={() => setSelectedBarista(barista.id)}
+                                                className={`barista-card p-3 rounded-xl border-2 ${
+                                                    selectedBarista === barista.id 
+                                                        ? 'border-[#D4AF37] bg-[#D4AF37]/10' 
+                                                        : 'border-gray-200 bg-white'
+                                                }`}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                            >
+                                                <img src={barista.avatar} alt={barista.name} className="w-12 h-12 rounded-full mx-auto mb-2" />
+                                                <div className="text-xs font-bold text-center text-[#2C1810]">{barista.name}</div>
+                                                <div className="text-[10px] text-center text-gray-500">{barista.specialty}</div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Coffee Selection */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-[#6B4423] mb-3">Coffee Type</label>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {COFFEE_TYPES.map(coffee => (
+                                            <motion.button
+                                                key={coffee.id}
+                                                onClick={() => setSelectedCoffee(coffee.id)}
+                                                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                                                    selectedCoffee === coffee.id
+                                                        ? 'border-[#6B4423] bg-[#6B4423] text-white'
+                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-[#6B4423]'
+                                                }`}
+                                                whileHover={{ y: -2 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <div className="font-bold text-sm">{coffee.name}</div>
+                                                <div className={`text-xs mt-1 ${selectedCoffee === coffee.id ? 'text-white/70' : 'text-gray-500'}`}>
+                                                    KES {coffee.basePrice}
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Origin Selection - SPECIALTY LAYER */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-[#6B4423] mb-3">
+                                        Origin <span className="text-[#D4AF37]">★ Premium</span>
+                                    </label>
+                                    <div className="space-y-3">
+                                        {Object.entries(SPECIALTY_ORIGINS).map(([key, origin]) => (
+                                            <motion.div
+                                                key={key}
+                                                onClick={() => setSelectedOrigin(key)}
+                                                className={`specialty-layer p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                                    selectedOrigin === key
+                                                        ? 'border-[#D4AF37] bg-gradient-to-r from-[#D4AF37]/10 to-transparent'
+                                                        : 'border-gray-200 bg-white hover:border-[#D4AF37]/50'
+                                                }`}
+                                                whileHover={{ x: 5 }}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <div className="font-bold text-[#2C1810] flex items-center gap-2">
+                                                            {origin.name}
+                                                            {selectedOrigin === key && <span className="text-[#D4AF37]">✓</span>}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 mt-1">{origin.region}</div>
+                                                        <div className="text-xs text-[#6B4423] mt-1 italic">"{origin.notes}"</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs font-bold text-[#D4AF37]">+{Math.round((origin.priceModifier-1)*100)}%</div>
+                                                        <div className="text-[10px] text-gray-400">{origin.process}</div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Size Selection */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-[#6B4423] mb-3">Size</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {Object.entries(SIZES).map(([key, size]) => (
+                                            <motion.button
+                                                key={key}
+                                                onClick={() => setSelectedSize(key)}
+                                                className={`p-4 rounded-xl border-2 transition-all ${
+                                                    selectedSize === key
+                                                        ? 'border-[#6B4423] bg-[#6B4423] text-white'
+                                                        : 'border-gray-200 bg-white hover:border-[#6B4423]'
+                                                }`}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <div className="font-bold">{size.label}</div>
+                                                <div className={`text-xs ${selectedSize === key ? 'text-white/70' : 'text-gray-500'}`}>
+                                                    {size.kiswahili}
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Extras */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-[#6B4423] mb-3">Extras</label>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {Object.entries(EXTRAS).map(([key, extra]) => (
+                                            <motion.button
+                                                key={key}
+                                                onClick={() => toggleExtra(key)}
+                                                className={`p-3 rounded-xl border-2 text-left transition-all ${
+                                                    selectedExtras.includes(key)
+                                                        ? 'border-[#6B4423] bg-[#6B4423]/10'
+                                                        : 'border-gray-200 bg-white hover:border-[#6B4423]'
+                                                }`}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">{extra.icon}</span>
+                                                    <div>
+                                                        <div className="font-medium text-sm">{extra.name}</div>
+                                                        <div className="text-xs text-gray-500">+KES {extra.price}</div>
+                                                    </div>
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Total Display */}
+                                <div className="bg-gradient-to-r from-[#2C1810] to-[#4A2511] rounded-2xl p-6 text-white">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-white/70">Subtotal</span>
+                                        <span className="text-xl">KES {calculateTotal}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-3xl font-bold">
+                                        <span>Total</span>
+                                        <span className="text-[#D4AF37]">KES {calculateTotal}</span>
+                                    </div>
+                                    <div className="text-xs text-white/50 mt-2 flex items-center gap-2">
+                                        <span>💡</span>
+                                        <span>Includes {SPECIALTY_ORIGINS[selectedOrigin].name} premium beans</span>
+                                    </div>
+                                </div>
+                                
+                                <motion.button 
+                                    onClick={() => setShowPayment(true)}
+                                    className="w-full mt-6 py-5 bg-[#D4AF37] text-[#2C1810] rounded-xl font-bold text-xl hover:bg-[#B8941F] transition-all shadow-xl flex items-center justify-center gap-3"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <span>Place Order</span>
+                                    <span>→</span>
+                                </motion.button>
+                            </motion.div>
+                        </div>
+                        
+                        {/* Right Column - Live Orders */}
+                        <div className="lg:col-span-5 space-y-6">
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="glass rounded-3xl shadow-xl p-6 border border-white/50"
+                            >
+                                <h3 className="font-display text-2xl font-bold text-[#2C1810] mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    Your Orders
+                                </h3>
+                                
+                                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                                    <AnimatePresence>
+                                        {orders.filter(o => o.customer.includes(customerName) && customerName).map(order => (
+                                            <motion.div 
+                                                key={order.id}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, x: -100 }}
+                                                className="bg-white rounded-2xl shadow-lg p-5 border-l-4 border-[#6B4423] relative overflow-hidden"
+                                            >
+                                                {order.status === 'ready' && (
+                                                    <div className="absolute top-0 right-0 w-20 h-20 bg-green-400/20 rounded-full -mr-10 -mt-10 blur-xl"></div>
+                                                )}
+                                                
+                                                <div className="flex justify-between items-start mb-3 relative z-10">
+                                                    <div>
+                                                        <div className="font-bold text-lg text-[#2C1810]">Order #{order.id}</div>
+                                                        <div className="text-xs text-gray-500">{order.time}</div>
+                                                    </div>
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase status-${order.status}`}>
+                                                        {order.status}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="space-y-1 text-sm mb-3 relative z-10">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Coffee:</span>
+                                                        <span className="font-medium">{order.coffee}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Origin:</span>
+                                                        <span className="font-medium text-[#D4AF37]">{SPECIALTY_ORIGINS[order.origin]?.name}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Barista:</span>
+                                                        <span className="font-medium">{BARISTAS.find(b => b.id === order.assignedBarista)?.name}</span>
+                                                    </div>
+                                                    <div className="flex justify-between font-bold text-[#2C1810] text-lg mt-2 pt-2 border-t">
+                                                        <span>Total:</span>
+                                                        <span>KES {order.total}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {order.status === 'ready' && (
+                                                    <motion.div 
+                                                        initial={{ scale: 0.9 }}
+                                                        animate={{ scale: 1 }}
+                                                        className="bg-green-100 border border-green-300 rounded-lg p-3 text-center mb-3"
+                                                    >
+                                                        <span className="text-green-700 font-bold">☕ Your order is ready!</span>
+                                                    </motion.div>
+                                                )}
+                                                
+                                                {/* Feedback Section */}
+                                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                                    <div className="text-sm font-semibold text-[#6B4423] mb-2">Feedback</div>
+                                                    
+                                                    {order.feedback.length > 0 && (
+                                                        <div className="space-y-2 mb-3">
+                                                            {order.feedback.map((fb, idx) => (
+                                                                <div key={idx} className="bg-gray-50 rounded-lg p-2 text-xs">
+                                                                    <div className="flex justify-between text-gray-500 mb-1">
+                                                                        <span>{fb.user}</span>
+                                                                        <span>{fb.time}</span>
+                                                                    </div>
+                                                                    <p className="text-gray-700">{fb.text}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <div className="flex gap-2 mb-3">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Leave feedback..."
+                                                            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#6B4423]"
+                                                            value={feedbackText[order.id] || ''}
+                                                            onChange={(e) => setFeedbackText(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                                        />
+                                                        <button 
+                                                            onClick={() => submitFeedback(order.id)}
+                                                            className="px-4 py-2 bg-[#6B4423] text-white rounded-lg text-sm hover:bg-[#4A2511]"
+                                                        >
+                                                            Post
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    {/* Tip Button */}
+                                                    <button
+                                                        onClick={() => setShowTipModal(order.id)}
+                                                        className="w-full py-2 bg-gradient-to-r from-[#D4AF37] to-[#B8941F] text-[#2C1810] rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all"
+                                                    >
+                                                        <span className="tip-coin">🪙</span>
+                                                        Tip Barista
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                    
+                                    {(!customerName || orders.filter(o => o.customer.includes(customerName)).length === 0) && (
+                                        <div className="text-center py-12 text-gray-400">
+                                            <div className="text-6xl mb-4">☕</div>
+                                            <p>No orders yet. Place your first order!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                    
+                    {/* Payment Modal */}
+                    <AnimatePresence>
+                        {showPayment && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            >
+                                <motion.div 
+                                    initial={{ scale: 0.9, y: 20 }}
+                                    animate={{ scale: 1, y: 0 }}
+                                    exit={{ scale: 0.9, y: 20 }}
+                                    className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+                                >
+                                    {paymentStep === 'select' && (
+                                        <>
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h3 className="font-display text-2xl font-bold text-[#2C1810]">Payment</h3>
+                                                <button onClick={() => setShowPayment(false)} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+                                            </div>
+                                            
+                                            <div className="text-center mb-8">
+                                                <div className="text-5xl font-bold text-[#2C1810] mb-1">KES {calculateTotal}</div>
+                                                <div className="text-gray-500">Total Amount</div>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                <button 
+                                                    onClick={() => setPaymentMethod('mpesa')}
+                                                    className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${paymentMethod === 'mpesa' ? 'ring-2 ring-[#00A650] payment-mpesa text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                                >
+                                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#00A650] font-bold text-xl">M</div>
+                                                    <div className="text-left flex-1">
+                                                        <div className="font-bold text-lg">M-Pesa</div>
+                                                        <div className={`text-sm ${paymentMethod === 'mpesa' ? 'text-white/80' : 'text-gray-500'}`}>STK Push to your phone</div>
+                                                    </div>
+                                                </button>
+                                                
+                                                <button 
+                                                    onClick={() => { setPaymentMethod('metamask'); connectWallet('metamask'); }}
+                                                    className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${paymentMethod === 'metamask' ? 'ring-2 ring-[#F6851B] payment-metamask text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                                >
+                                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" className="w-8 h-8" alt="MetaMask" />
+                                                    </div>
+                                                    <div className="text-left flex-1">
+                                                        <div className="font-bold text-lg">MetaMask</div>
+                                                        <div className={`text-sm ${paymentMethod === 'metamask' ? 'text-white/80' : 'text-gray-500'}`}>
+                                                            {walletConnected ? 'Connected' : 'ETH, MATIC, USDC'}
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                                
+                                                <button 
+                                                    onClick={() => { setPaymentMethod('phantom'); connectWallet('phantom'); }}
+                                                    className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${paymentMethod === 'phantom' ? 'ring-2 ring-[#AB9FF2] payment-phantom text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                                >
+                                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                                        <img src="https://phantom.app/img/phantom-logo-purple.svg" className="w-8 h-8" alt="Phantom" />
+                                                    </div>
+                                                    <div className="text-left flex-1">
+                                                        <div className="font-bold text-lg">Phantom</div>
+                                                        <div className={`text-sm ${paymentMethod === 'phantom' ? 'text-white/80' : 'text-gray-500'}`}>
+                                                            {walletConnected ? 'Connected' : 'Solana, SOL, USDC'}
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                            
+                                            <button 
+                                                onClick={submitOrder}
+                                                disabled={!paymentMethod}
+                                                className="w-full mt-6 py-4 bg-[#6B4423] text-white rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#4A2511] transition-all"
+                                            >
+                                                Pay & Place Order
+                                            </button>
+                                        </>
+                                    )}
+                                    
+                                    {paymentStep === 'processing' && (
+                                        <div className="text-center py-12">
+                                            <motion.div 
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                                className="w-16 h-16 border-4 border-[#6B4423] border-t-transparent rounded-full mx-auto mb-4"
+                                            />
+                                            <h3 className="text-xl font-bold text-[#2C1810] mb-2">Processing Payment...</h3>
+                                            <p className="text-gray-500">Please complete the payment on your device</p>
+                                          </div>
+                                    )}
+                                    
+                                    {paymentStep === 'success' && (
+                                        <motion.div 
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="text-center py-12"
+                                        >
+                                            <div className="text-6xl mb-4">✅</div>
+                                            <h3 className="text-2xl font-bold text-[#2C1810] mb-2">Order Confirmed!</h3>
+                                            <p className="text-gray-500">Your coffee is being prepared</p>
+                                        </motion.div>
+                                    )}
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                    
+                    {/* Tip Modal */}
+                    <AnimatePresence>
+                        {showTipModal && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            >
+                                <motion.div
+                                    initial={{ scale: 0.9 }}
+                                    animate={{ scale: 1 }}
+                                    className="bg-white rounded-3xl p-6 max-w-sm w-full"
+                                >
+                                    <h3 className="font-bold text-xl text-[#2C1810] mb-4">Tip Your Barista</h3>
+                                    <div className="flex justify-center gap-2 mb-6">
+                                        {[50, 100, 200, 500].map(amount => (
+                                            <button
+                                                key={amount}
+                                                onClick={() => setTipAmount(amount)}
+                                                className={`px-4 py-2 rounded-lg font-bold ${
+                                                    tipAmount === amount ? 'bg-[#D4AF37] text-[#2C1810]' : 'bg-gray-100 text-gray-600'
+                                                }`}
+                                            >
+                                                {amount}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => setShowTipModal(null)}
+                                            className="flex-1 py-3 bg-gray-200 rounded-xl font-bold text-gray-700"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => sendTip(showTipModal, orders.find(o => o.id === showTipModal)?.assignedBarista)}
+                                            className="flex-1 py-3 bg-[#D4AF37] rounded-xl font-bold text-[#2C1810]"
+                                        >
+                                            Send KES {tipAmount}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+            
+            const BaristaView = () => (
+                <div className="min-h-screen bg-gray-50">
+                    <div className="bg-[#2C1810] text-white p-6 sticky top-0 z-30 shadow-xl">
+                        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div>
+                                <h1 className="font-display text-3xl font-bold mb-1">Barista Dashboard</h1>
+                                <p className="text-white/60">Welcome back, {BARISTAS.find(b => b.id === activeBarista)?.name}</p>
+                            </div>
+                            
+                            <div className="flex gap-4">
+                                <div className="bg-white/10 rounded-2xl px-6 py-3 text-center backdrop-blur-md">
+                                    <div className="text-3xl font-bold text-yellow-400">{orders.filter(o => o.status === 'pending').length}</div>
+                                    <div className="text-xs uppercase tracking-wider opacity-70">Pending</div>
+                                </div>
+                                <div className="bg-white/10 rounded-2xl px-6 py-3 text-center backdrop-blur-md">
+                                    <div className="text-3xl font-bold text-blue-400">{orders.filter(o => o.status === 'preparing').length}</div>
+                                    <div className="text-xs uppercase tracking-wider opacity-70">Preparing</div>
+                                </div>
+                                <div className="bg-white/10 rounded-2xl px-6 py-3 text-center backdrop-blur-md">
+                                    <div className="text-3xl font-bold text-green-400">{orders.filter(o => o.status === 'ready').length}</div>
+                                    <div className="text-xs uppercase tracking-wider opacity-70">Ready</div>
+                                </div>
+                            </div>
+                            
+                            <select 
+                                value={activeBarista}
+                                onChange={(e) => setActiveBarista(e.target.value)}
+                                className="bg-white/20 border border-white/30 rounded-xl px-4 py-2 text-white focus:outline-none"
+                            >
+                                {BARISTAS.map(b => (
+                                    <option key={b.id} value={b.id} className="text-black">{b.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div className="max-w-7xl mx-auto p-6">
+                        {/* Orders Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                            {orders.map(order => (
+                                <motion.div
+                                    key={order.id}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className={`bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 ${
+                                        order.status === 'pending' ? 'border-yellow-400' :
+                                        order.status === 'preparing' ? 'border-blue-400' :
+                                        'border-green-400'
+                                    }`}
+                                >
+                                    <div className="p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <div className="font-display text-2xl font-bold text-[#2C1810]">#{order.id}</div>
+                                                <div className="text-sm text-gray-500">{order.customer}</div>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase status-${order.status}`}>
+                                                {order.status}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="space-y-2 mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">☕</span>
+                                                <span className="font-bold">{order.coffee}</span>
+                                                <span className="text-[#D4AF37] text-sm">({SPECIALTY_ORIGINS[order.origin]?.name})</span>
+                                            </div>
+                                            <div className="text-sm text-gray-600 ml-8">
+                                                {order.size} • {order.extras.join(', ') || 'No extras'}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-center mb-4 pt-4 border-t">
+                                            <span className="text-2xl font-bold text-[#6B4423]">KES {order.total}</span>
+                                            {order.tips > 0 && (
+                                                <span className="text-[#D4AF37] font-bold flex items-center gap-1">
+                                                    🪙 Tip: {order.tips}
+                                                </span>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Action Buttons */}
+                                        <div className="space-y-2">
+                                            {order.status === 'pending' && (
+                                                <button
+                                                    onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                                    className="w-full py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <span>Start Preparing</span>
+                                                    <span>→</span>
+                                                </button>
+                                            )}
+                                            {order.status === 'preparing' && (
+                                                <button
+                                                    onClick={() => updateOrderStatus(order.id, 'ready')}
+                                                    className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <span>Mark Ready</span>
+                                                    <span>✓</span>
+                                                </button>
+                                            )}
+                                            {order.status === 'ready' && (
+                                                <div className="text-center py-3 bg-green-100 text-green-700 rounded-xl font-bold">
+                                                    Waiting for pickup
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Feedback Display for Barista */}
+                                    {order.feedback.length > 0 && (
+                                        <div className="bg-gray-50 p-4 border-t">
+                                            <div className="text-xs font-bold text-gray-500 mb-2">CUSTOMER FEEDBACK</div>
+                                            {order.feedback.map((fb, idx) => (
+                                                <div key={idx} className="bg-white p-3 rounded-lg text-sm shadow-sm mb-2">
+                                                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                                                        <span>{fb.user}</span>
+                                                        <span>{fb.time}</span>
+                                                    </div>
+                                                    <p className="text-gray-700">{fb.text}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                        
+                        {/* Analytics Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white rounded-2xl shadow-lg p-6">
+                                <h3 className="font-display text-xl font-bold text-[#2C1810] mb-4">Today's Performance</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-[#6B4423]/10 rounded-xl p-4 text-center">
+                                        <div className="text-3xl font-bold text-[#6B4423]">{orders.length}</div>
+                                        <div className="text-sm text-gray-600">Total Orders</div>
+                                    </div>
+                                    <div className="bg-[#D4AF37]/10 rounded-xl p-4 text-center">
+                                        <div className="text-3xl font-bold text-[#D4AF37]">
+                                            KES {orders.reduce((a,b) => a + b.total, 0)}
+                                        </div>
+                                        <div className="text-sm text-gray-600">Revenue</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-2xl shadow-lg p-6">
+                                <h3 className="font-display text-xl font-bold text-[#2C1810] mb-4">Recent Tips</h3>
+                                <div className="space-y-3">
+                                    {orders.filter(o => o.tips > 0).slice(0, 3).map(order => (
+                                        <div key={order.id} className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl">🪙</span>
+                                                <div>
+                                                    <div className="font-bold text-sm">Order #{order.id}</div>
+                                                    <div className="text-xs text-gray-500">{order.customer}</div>
+                                                </div>
+                                            </div>
+                                            <div className="font-bold text-[#D4AF37]">+KES {order.tips}</div>
+                                        </div>
+                                    ))}
+                                    {orders.filter(o => o.tips > 0).length === 0 && (
+                                        <div className="text-center text-gray-400 py-4">No tips yet today</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+            
+            return (
+                <>
+                    <RoleSwitch />
+                    <Header />
+                    {role === 'customer' ? <CustomerView /> : <BaristaView />}
+                    <NotificationContainer />
+                    
+                    {/* Footer */}
+                    <footer className="bg-[#2C1810] text-white py-8 text-center">
+                        <div className="max-w-4xl mx-auto px-6">
+                            <div className="text-4xl mb-3">☕</div>
+                            <h3 className="font-display text-2xl font-bold mb-2">BaristaBot Pro</h3>
+                            <p className="text-white/60 mb-4">Crafted with passion by Dennis Kathurima</p>
+                            <div className="flex justify-center gap-6 text-sm text-white/40">
+                                <span>M-Pesa Integrated</span>
+                                <span>•</span>
+                                <span>Web3 Ready</span>
+                                <span>•</span>
+                                <span>POS Compatible</span>
+                            </div>
+                        </div>
+                    </footer>
+                </>
+            );
+        };
+        
+        // Mount the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<BaristaBotPro />);
+    </script>
+</body>
+</html>
+ 
